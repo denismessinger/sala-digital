@@ -1,0 +1,6 @@
+@SalaDigitalApi_HostAddress = http://localhost:5206
+
+GET {{SalaDigitalApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

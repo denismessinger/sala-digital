@@ -13,7 +13,7 @@ namespace SalaDigitalApi.Services
         {
             _context = context;
         }
-        public async Task<IEnumerable<Student>> GetAlunos()
+        public async Task<IEnumerable<Student>> GetStudents()
         {
             try
             {
@@ -25,18 +25,18 @@ namespace SalaDigitalApi.Services
             }
             
         }
-        public async Task<IEnumerable<Student>> GetAlunosByName(string name)
+        public async Task<IEnumerable<Student>> GetStudentsByName(string name)
         {
             try
             {
                 IEnumerable<Student> students;
-                if (!string.IsNullOrWhiteSpace(name)
+                if (!string.IsNullOrWhiteSpace(name))
                 {
                     students = await _context.Students.Where(n => n.Name == name).ToListAsync();
                 }
                 else
                 {
-                    students = await GetAlunos();
+                    students = await GetStudents();
                 }
                 return students;
             }
@@ -46,7 +46,7 @@ namespace SalaDigitalApi.Services
             }
         }
 
-        public async Task<Student> GetAluno(int id)
+        public async Task<Student> GetStudent(int id)
         {
             try
             {

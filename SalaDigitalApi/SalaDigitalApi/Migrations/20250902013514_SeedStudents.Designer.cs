@@ -11,8 +11,8 @@ using SalaDigitalApi.Context;
 namespace SalaDigitalApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250902005510_Inicial")]
-    partial class Inicial
+    [Migration("20250902013514_SeedStudents")]
+    partial class SeedStudents
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,7 +24,7 @@ namespace SalaDigitalApi.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
-            modelBuilder.Entity("SalaDigitalApi.Models.Aluno", b =>
+            modelBuilder.Entity("SalaDigitalApi.Models.Student", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -32,22 +32,45 @@ namespace SalaDigitalApi.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("Age")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<int>("Idade")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Nome")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("varchar(80)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Alunos");
+                    b.ToTable("Students");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Age = 20,
+                            Email = "maria.silva@email.com",
+                            Name = "Maria Silva"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Age = 22,
+                            Email = "joao.pereira@email.com",
+                            Name = "João Pereira"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Age = 19,
+                            Email = "ana.souza@email.com",
+                            Name = "Ana Souza"
+                        });
                 });
 #pragma warning restore 612, 618
         }

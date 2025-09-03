@@ -1,5 +1,4 @@
-﻿using System.Xml.Linq;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SalaDigitalApi.Context;
 using SalaDigitalApi.Models;
 
@@ -13,88 +12,59 @@ namespace SalaDigitalApi.Services
         {
             _context = context;
         }
+
         public async Task<IEnumerable<Student>> GetStudents()
         {
-            try
-            {
-                return await _context.Students.ToListAsync();
-            }
-            catch
-            {
-                throw;
-            }
-            
+            return await _context.Students.AsNoTracking().ToListAsync();
         }
+
         public async Task<IEnumerable<Student>> GetStudentsByName(string name)
         {
-            try
+            if (!string.IsNullOrWhiteSpace(name))
             {
-                IEnumerable<Student> students;
-                if (!string.IsNullOrWhiteSpace(name))
-                {
-                    students = await _context.Students.Where(n => n.Name == name).ToListAsync();
-                }
-                else
-                {
-                    students = await GetStudents();
-                }
-                return students;
+                return await _context.Students
+                    .AsNoTracking()
+                    .Where(n => n.Name.Contains(name))
+                    .ToListAsync();
             }
-            catch
-            {
-                throw;
-            }
+
+            return await GetStudents();
         }
 
-        public async Task<Student> GetStudent(int id)
+        public async Task<Student?> GetStudent(int id)
         {
-            try
-            {
-                var student = await _context.Students.FindAsync(id);
-                return student;
-            }
-            catch
-            {
-                throw;
-            }
+            return await _context.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task CreateStudent(Student student)
+        public async Task<Student> CreateStudent(Student student)
         {
-            try
-            {
-                _context.Students.Add(student);
-                await _context.SaveChangesAsync();
-            }
-            catch
-            {
-                throw;
-            }
+            _context.Students.Add(student);
+            await _context.SaveChangesAsync();
+            return student;
         }
+
         public async Task UpdateStudent(Student student)
         {
-            try
+            var exists = await _context.Students.AnyAsync(s => s.Id == student.Id);
+            if (!exists)
             {
-                _context.Entry(student).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+                throw new KeyNotFoundException($"Aluno com ID {student.Id} não encontrado.");
             }
-            catch
-            {
-                throw;
-            }
+
+            _context.Entry(student).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteStudent(Student student)
         {
-            try
+            var exists = await _context.Students.AnyAsync(s => s.Id == student.Id);
+            if (!exists)
             {
-                _context.Students.Remove(student);
-                await _context.SaveChangesAsync();
+                throw new KeyNotFoundException($"Aluno com ID {student.Id} não encontrado.");
             }
-            catch
-            {
-                throw;
-            }
+
+            _context.Students.Remove(student);
+            await _context.SaveChangesAsync();
         }
     }
 }

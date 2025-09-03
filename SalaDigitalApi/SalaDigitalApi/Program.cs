@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using MySqlConnector;
 using SalaDigitalApi.Context;
 using SalaDigitalApi.Services;
 

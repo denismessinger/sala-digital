@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SalaDigitalApi.Context;
+﻿using Microsoft.AspNetCore.Mvc;
 using SalaDigitalApi.Models;
 using SalaDigitalApi.Services;
 
@@ -16,7 +9,7 @@ namespace SalaDigitalApi.Controllers
     public class StudentsController : ControllerBase
     {
         private readonly IStudentService _service;
-        
+
         public StudentsController(IStudentService service)
         {
             _service = service;
@@ -26,76 +19,108 @@ namespace SalaDigitalApi.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
-            var students = await _service.GetStudents();
-            return Ok(students);
+            try
+            {
+                var students = await _service.GetStudents();
+                return Ok(students);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
         }
 
         // GET: api/Students/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Student>> GetStudent(int id)
         {
-            var student = _service.GetStudent(id);
-
-            if (student == null)
+            try
             {
-                return NotFound();
-            }
+                var student = await _service.GetStudent(id);
 
-            return Ok(student);
+                if (student == null)
+                    return NotFound($"Aluno com ID {id} não encontrado.");
+
+                return Ok(student);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
+        }
+
+        // GET: api/Students/nome
+        [HttpGet("StudentsByName")]
+        public async Task<ActionResult<IEnumerable<Student>>> GetStudentsByName([FromQuery] string name)
+        {
+            try
+            {
+                var students = await _service.GetStudentsByName(name);
+                return Ok(students);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
         }
 
         // PUT: api/Students/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutStudent(int id, Student student)
         {
             if (id != student.Id)
-            {
-                return BadRequest();
-            }
+                return BadRequest("ID informado não corresponde ao aluno enviado.");
 
             try
             {
-               _service.UpdateStudent(student);
+                await _service.UpdateStudent(student);
+                return NoContent(); // Melhor que Ok() para update
             }
-            catch 
+            catch (KeyNotFoundException)
             {
-               return BadRequest();
+                return NotFound($"Aluno com ID {id} não encontrado.");
             }
-
-            return Ok();
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
         }
 
         // POST: api/Students
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Student>> PostStudent(Student student)
         {
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var created = await _service.CreateStudent(student);
 
-            return CreatedAtAction("GetStudent", new { id = student.Id }, student);
+                // Retorna 201 Created com a rota do recurso criado
+                return CreatedAtAction(nameof(GetStudent), new { id = created.Id }, created);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
         }
 
         // DELETE: api/Students/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            var student = await _context.Students.FindAsync(id);
-            if (student == null)
+            try
             {
-                return NotFound();
+                var student = await _service.GetStudent(id);
+                if (student == null)
+                    return NotFound($"Aluno com ID {id} não encontrado.");
+
+                await _service.DeleteStudent(student);
+
+                return NoContent(); // Melhor que Ok() para delete
             }
-
-            _context.Students.Remove(student);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool StudentExists(int id)
-        {
-            return _context.Students.Any(e => e.Id == id);
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Erro interno: {ex.Message}");
+            }
         }
     }
 }
